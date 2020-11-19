@@ -1,19 +1,22 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import { graphqlExpress } from 'apollo-server-express';
-import { makeExecutableSchema } from 'graphql-tools';
+const express = require('express');
+const { ApolloServer, gql, makeExecutableSchema } = require('apollo-server-express');
 
 import typeDefs from './schema';
-import reslovers from './resolvers';
+import resolvers from './resolvers';
+import models from './models';
 
-export const schema = makeExecutableSchema({
-    typeDefs,
-    resolvers,
-});
+const PORT = 8081;
 
 const app = express();
 
-// bodyParser is needed just for POST.
-app.use('/graphql', bodyParser.json(), graphqlExpress({ schema }));
+const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  });
 
-app.listen(8080);
+const server = new ApolloServer({ schema });
+server.applyMiddleware({ app });
+
+models.sequelize.sync({}).then(() => {
+  app.listen(8081);
+});
